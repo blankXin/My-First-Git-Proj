@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.smbms.dao.user.UserMapper">
+	<resultMap type="User" id="userList">
+		<id property="id" column="id" />
+		<result property="userCode" column="userCode" />
+		<result property="userName" column="userName" />
+		<result property="userRoleName" column="userRoleName" />
+	</resultMap>
+	<!-- 通过userCode获取User -->
+	<select id="getLoginUser" resultMap="userList">
+		select * from smbms_user u
+		<trim prefix="where" prefixOverrides="and|or">
+			<if test="userCode != null">
+				and u.userCode = #{userCode}
+			</if>
+		</trim>
+	</select>
+	<!-- 增加用户信息 -->
+	<insert id="add" parameterType="User">
+		insert into smbms_user
+		(userCode,userName,userPassword,userRole,gender,birthday,phone,address,
+		creationDate,createdBy,idPicPath,workPicPath)
+		values(#{userCode},#{userName},#{userPassword},#{userRole},#{gender},#{birthday},#{phone},#{address},
+		#{creationDate},#{createdBy},#{idPicPath},#{workPicPath})
+	</insert>
+	<!-- 通过条件查询-userList -->
+	<select id="getUserList" resultMap="userList">
+		select u.*,r.roleName as userRoleName from smbms_user u,smbms_role r
+		where u.userRole = r.id
+		<if test="userName != null and userName != ''">
+			and u.userName like concat('%',#{userName},'%')
+		</if>
+		<if test="userRole > 0">
+			and u.userRole = #{userRole}
+		</if>
+		order by u.creationDate DESC limit #{currentPageNo},#{pageSize}
+	</select>
+	<!-- 通过条件查询-用户表记录数 -->
+	<select id="getUserCount" resultType="int">
+		select count(*) from smbms_user
+		<trim prefix="where" prefixOverrides="and | or">
+			<if test="userName != null and userName != ''">
+				and userName like concat('%',#{userName},'%')
+			</if>
+			<if test="userRole > 0">
+				and userRole = #{userRole}
+			</if>
+		</trim>
+	</select>
+	<!-- 通过userId删除user -->
+	<delete id="deleteUserById">
+		delete from smbms_user where id = #{id}
+	</delete>
+	<!-- 通过userId获取user -->
+	<select id="getUserById" resultMap="userList">
+		select u.*,r.roleName as userRoleName 
+		from smbms_user u,smbms_role r 
+		where u.id=#{id} and u.userRole = r.id
+	</select>
+	<!-- 修改用户信息 -->
+	<update id="modify" parameterType="User">
+		update smbms_user
+		<trim prefix="set" suffixOverrides="," suffix="where id = #{id}">
+			<if test="userCode != null">userCode=#{userCode},</if>
+			<if test="userName != null">userName=#{userName},</if>
+			<if test="userPassword != null">userPassword=#{userPassword},</if>
+			<if test="gender != null">gender=#{gender},</if>
+			<if test="phone != null">phone=#{phone},</if>
+			<if test="address != null">address=#{address},</if>
+			<if test="userRole != null">userRole=#{userRole},</if>
+			<if test="idPicPath != null">idPicPath=#{idPicPath},</if>
+			<if test="workPicPath != null">workPicPath=#{workPicPath},</if>
+			<if test="modifyDate != null">modifyDate=#{modifyDate},</if>
+			<if test="modifyBy != null">modifyBy=#{modifyBy},</if>
+			<if test="birthday != null">birthday=#{birthday},</if>
+		</trim>
+	</update>
+	<!-- 修改当前用户密码 -->
+	<update id="updatePwd">
+		update smbms_user set userPassword = #{password}
+		where id = #{id}
+	</update>
+	<!-- 通过用户名查找有没有数据 -->
+	<select id="findUserCode" resultType="Integer">
+		select count(*) count from smbms_user where userCode = #{userCode}
+	</select>
+</mapper>
